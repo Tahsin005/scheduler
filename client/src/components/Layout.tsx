@@ -16,7 +16,7 @@ const Layout = () => {
     const location = useLocation();
     const title = pageTitle[location.pathname] || 'Dashboard';
     return (
-        <div className="flex h-scree bg-slate-50">
+        <div className="flex h-screen bg-slate-50">
             {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
             <Sidebar isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
 
