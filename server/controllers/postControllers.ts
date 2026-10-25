@@ -134,6 +134,21 @@ export const schedulePost = async(req: AuthRequest, res: Response): Promise<void
         let mediaUrl: string | undefined = req.body.mediaUrl;
         let mediaType: "image" | "video" | undefined = req.body.mediaType;
 
+        if (req.file) {
+            const result = await new Promise<any>((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: "auto", folder: "social-scheduler" },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file!.buffer);
+            });
+            mediaUrl = result.secure_url;
+            mediaType = result.resource_type === "video" ? "video" : "image";
+        }
+
         const post = await Post.create({
             user: req.user._id,
             content,

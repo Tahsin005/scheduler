@@ -3,7 +3,7 @@ import { AuthRequest } from "../middlewares/authMiddleware.js";
 import ActivityLog from "../models/ActivityLog.js";
 
 // get all activity
-export const getActivity = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getActivities = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const activities = await ActivityLog.find({
             user: req.user._id,
