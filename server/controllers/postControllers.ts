@@ -49,10 +49,12 @@ export const generatePost = async(req: AuthRequest, res: Response): Promise<void
             content = textResponse.text || "";
         }
 
-        let mediaUrl = null;
+        let mediaUrl: string | null = null;
 
         if (generateImage) {
-            mediaUrl = "https://images.unsplash.com/photo-1607827448387-a67db1383b59?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D";
+            const seed = Math.floor(Math.random() * 10000000);
+            const promptForImage = (imagePrompt || prompt || "cute pet").trim().slice(0, 400);
+            mediaUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptForImage)}?model=flux&width=1024&height=1024&nologo=true&seed=${seed}`;
         }
 
         // save generation to DB
