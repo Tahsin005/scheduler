@@ -3,6 +3,7 @@ import { AuthRequest } from "../middlewares/authMiddleware.js";
 import { GoogleGenAI } from "@google/genai";
 import Generation from "../models/Generation.js";
 import Post from "../models/Post.js";
+import { cloudinary } from "../config/cloudinary.js";
 
 // generate post
 export const generatePost = async(req: AuthRequest, res: Response): Promise<void> => {
@@ -49,10 +50,22 @@ export const generatePost = async(req: AuthRequest, res: Response): Promise<void
             content = textResponse.text || "";
         }
 
-        let mediaUrl = null;
+        let mediaUrl: string | null = null;
 
         if (generateImage) {
-            mediaUrl = "https://images.unsplash.com/photo-1607827448387-a67db1383b59?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D";
+            try {
+                const seed = Math.floor(Math.random() * 10000000);
+                const promptForImage = (imagePrompt || prompt || "cute pet").trim().slice(0, 400);
+                const tempUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptForImage)}?model=flux&width=1024&height=1024&nologo=true&seed=${seed}`;
+
+                // Upload to Cloudinary for persistence
+                const uploadResult = await cloudinary.uploader.upload(tempUrl, {
+                    folder: "ai-generations",
+                });
+                mediaUrl = uploadResult.secure_url;
+            } catch (err: any) {
+                console.error("Cloudinary upload failed:", err);
+            }
         }
 
         // save generation to DB
@@ -120,6 +133,21 @@ export const schedulePost = async(req: AuthRequest, res: Response): Promise<void
 
         let mediaUrl: string | undefined = req.body.mediaUrl;
         let mediaType: "image" | "video" | undefined = req.body.mediaType;
+
+        if (req.file) {
+            const result = await new Promise<any>((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: "auto", folder: "social-scheduler" },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file!.buffer);
+            });
+            mediaUrl = result.secure_url;
+            mediaType = result.resource_type === "video" ? "video" : "image";
+        }
 
         const post = await Post.create({
             user: req.user._id,
