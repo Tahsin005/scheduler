@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
 import { GoogleGenAI } from "@google/genai";
 import Generation from "../models/Generation.js";
+import Post from "../models/Post.js";
 
 // generate post
 export const generatePost = async(req: AuthRequest, res: Response): Promise<void> => {
@@ -74,16 +75,65 @@ export const generatePost = async(req: AuthRequest, res: Response): Promise<void
 
 // get generations
 export const getGenerations = async(req: AuthRequest, res: Response): Promise<void> => {
-    
+    try {
+        const generations = await Generation.find({
+            user: req.user._id
+        }).sort({ createdAt: -1 });
+
+        res.json(generations);
+    } catch (error: any) {
+        res.status(500).json({
+            message: error?.message || "Server error"
+        });
+    }
 }
 
 
 // get posts
 export const getPosts = async(req: AuthRequest, res: Response): Promise<void> => {
-    
+    try {
+        const posts = await Post.find({
+            user: req.user._id
+        }).sort({ createdAt: -1 });
+
+        res.json(posts);
+    } catch (error: any) {
+        res.status(500).json({
+            message: error?.message || "Server error"
+        });
+    }
 }
 
 // schedule post
 export const schedulePost = async(req: AuthRequest, res: Response): Promise<void> => {
-    
+    try {
+        const { content, platforms, scheduledFor, status } = req.body;
+
+        let parsedPlatforms = platforms;
+        if (typeof platforms === "string") {
+            try {
+                parsedPlatforms = JSON.parse(platforms);
+            } catch (error) {
+                parsedPlatforms = platforms.split(",");
+            }
+        }
+
+        let mediaUrl: string | undefined = req.body.mediaUrl;
+        let mediaType: "image" | "video" | undefined = req.body.mediaType;
+
+        const post = await Post.create({
+            user: req.user._id,
+            content,
+            platforms: parsedPlatforms,
+            mediaUrl,
+            mediaType,
+            scheduledFor,
+            status,
+        });
+        res.status(201).json(post);
+    } catch (error: any) {
+        res.status(500).json({
+            message: error?.message || "Server error"
+        });
+    }
 }
