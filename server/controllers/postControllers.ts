@@ -3,6 +3,7 @@ import { AuthRequest } from "../middlewares/authMiddleware.js";
 import { GoogleGenAI } from "@google/genai";
 import Generation from "../models/Generation.js";
 import Post from "../models/Post.js";
+import { cloudinary } from "../config/cloudinary.js";
 
 // generate post
 export const generatePost = async(req: AuthRequest, res: Response): Promise<void> => {
@@ -52,9 +53,19 @@ export const generatePost = async(req: AuthRequest, res: Response): Promise<void
         let mediaUrl: string | null = null;
 
         if (generateImage) {
-            const seed = Math.floor(Math.random() * 10000000);
-            const promptForImage = (imagePrompt || prompt || "cute pet").trim().slice(0, 400);
-            mediaUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptForImage)}?model=flux&width=1024&height=1024&nologo=true&seed=${seed}`;
+            try {
+                const seed = Math.floor(Math.random() * 10000000);
+                const promptForImage = (imagePrompt || prompt || "cute pet").trim().slice(0, 400);
+                const tempUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptForImage)}?model=flux&width=1024&height=1024&nologo=true&seed=${seed}`;
+
+                // Upload to Cloudinary for persistence
+                const uploadResult = await cloudinary.uploader.upload(tempUrl, {
+                    folder: "ai-generations",
+                });
+                mediaUrl = uploadResult.secure_url;
+            } catch (err: any) {
+                console.error("Cloudinary upload failed:", err);
+            }
         }
 
         // save generation to DB
