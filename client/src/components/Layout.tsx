@@ -1,8 +1,9 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { useState } from "react";
 import { MenuIcon } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const pageTitle: Record<string, string>= {
     '/dashboard': 'Dashboard',
@@ -12,9 +13,22 @@ const pageTitle: Record<string, string>= {
 }
 
 const Layout = () => {
+    const { isAuthenticated, isLoading } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
     const title = pageTitle[location.pathname] || 'Dashboard';
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-slate-50">
+               <div className="size-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to={`/login`} replace />
+    }
     return (
         <div className="flex h-screen bg-slate-50">
             {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
