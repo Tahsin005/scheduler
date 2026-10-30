@@ -46,7 +46,7 @@ const Accounts = () => {
 
             fetchAcconts(true, connectedPlatform, `${label}${handle} connected`);
         } else if (errorMsg) {
-            toast.error(`Connection failed: ${decodeURIComponent(errorMsg)}`);
+            toast.error(`Connection failed: ${errorMsg}`);
             fetchAcconts();
         } else if (syncNeeded) {
             fetchAcconts(true, null, "Accounts synced!");

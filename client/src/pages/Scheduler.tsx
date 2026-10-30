@@ -173,10 +173,10 @@ const Scheduler = () => {
 
             <div className="flex-1 flex flex-col gap-6 min-w-0">
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                    <div className="flex items-center gap-2 5 px-5 py-4 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
                         <CalendarDaysIcon className="size-4 text-zinc-500" />
                         <h3 className="text-slate-900 text-sm">Upcoming</h3>
-                        <span className="ml-auto text-xs font-bold bg-zinc-100 text-zinc-700 px-2 py-0 5 rounded-full">
+                        <span className="ml-auto text-xs font-bold bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full">
                             {scheduled.length}
                         </span>
                     </div>
@@ -213,10 +213,10 @@ const Scheduler = () => {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                    <div className="flex items-center gap-2 5 px-5 py-4 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
                         <SendIcon className="size-4 text-zinc-500" />
                         <h3 className="text-slate-900 text-sm">Published</h3>
-                        <span className="ml-auto text-xs font-bold bg-zinc-100 text-zinc-700 px-2 py-0 5 rounded-full">
+                        <span className="ml-auto text-xs font-bold bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-full">
                             {published.length}
                         </span>
                     </div>
@@ -240,7 +240,7 @@ const Scheduler = () => {
                                             {post.mediaType && <span className="text-xs bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded-md font-semibold capitalize">{post.mediaType}</span>}
 
                                             <span className="text-xs text-slate-400">{new Date(post.updatedAt).toLocaleString()}</span>
-                                            <span className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0 5 rounded-full">Published</span>
+                                            <span className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full">Published</span>
                                         </div>
 
                                     </div>
