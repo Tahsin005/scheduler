@@ -55,7 +55,7 @@ export default function ServerHealthGate({ children }: ServerHealthGateProps) {
 
             const ok = await pingServer();
 
-            await new Promise((resolve) => setTimeout(resolve, 200000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             if (isCancelled) return;
 
