@@ -22,7 +22,7 @@ export default function Login() {
             const { data } = await api.post(`/api/auth/${loginState ? "login" : "register"}`, {
                 name, email, password
             });
-            login(data, data.token);
+            login(data, data.token, data.refreshToken);
             navigate("/dashboard");
         } catch (error: any) {
             toast.error(error?.response?.data?.message || error?.message || "Something went wrong");

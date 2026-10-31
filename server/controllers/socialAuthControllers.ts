@@ -5,18 +5,15 @@ import Account from "../models/Account.js";
 import { AuthRequest } from "../middlewares/authMiddleware.js";
 
 // helper to ensure user has a zenio profile
-const getOrCreateZernioProfile = async (user: any): Promise<void> => {
+const getOrCreateZernioProfile = async (user: any): Promise<string> => {
     try {
-        const result = await zernio.profiles.listProfiles();
-        const data = result.data as any;
-        const profiles: any[] = Array.isArray(data) ? data : data?.profiles || data?.data || [];
+        if (user.zernioProfileId) {
+            return user.zernioProfileId;
+        }
 
-        if (profiles.length > 0) {
-            const pid = profiles[0]._id || profiles[0].id;
-            await User.findByIdAndUpdate(user._id, {
-                zernioProfileId: pid
-            })
-            return pid;
+        const existingUser = await User.findById(user._id);
+        if (existingUser?.zernioProfileId) {
+            return existingUser.zernioProfileId;
         }
 
         const createResult = await zernio.profiles.createProfile({
@@ -25,7 +22,7 @@ const getOrCreateZernioProfile = async (user: any): Promise<void> => {
             } as any,
         });
 
-        const created = (createResult.data as any)?.proflie || createResult.data;
+        const created = (createResult.data as any)?.profile || (createResult.data as any)?.proflie || createResult.data;
 
         const pid = created?._id || created?.id;
 
@@ -36,6 +33,7 @@ const getOrCreateZernioProfile = async (user: any): Promise<void> => {
         await User.findByIdAndUpdate(user._id, {
             zernioProfileId: pid
         });
+        user.zernioProfileId = pid;
         return pid;
     } catch (error) {
         console.error("Failed to get or create Zernio profile:", error);
@@ -83,7 +81,7 @@ export const generateAuthUrl = async (req: AuthRequest, res: Response): Promise<
 // sync connected accounts from zernio to database
 export const syncAccounts = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const profileId = getOrCreateZernioProfile(req.user)
+        const profileId = await getOrCreateZernioProfile(req.user)
 
         const result = await zernio.accounts.listAccounts({
             query: { profileId } as any
@@ -110,6 +108,7 @@ export const syncAccounts = async (req: AuthRequest, res: Response): Promise<voi
             }
 
             const account = await Account.findOneAndUpdate({
+                user: req.user._id,
                 zernioAccountId: zid
             }, {
                 user: req.user._id,

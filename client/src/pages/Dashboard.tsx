@@ -48,7 +48,7 @@ const Dashboard = () => {
         <div className="space-y-8">
             <div>
                 <h2 className="text-2xl text-slate-900">Good morning!</h2>
-                <p className="text-slate-500 text-sm mt-0 5">Here's whats happening with your social accounts today.</p>
+                <p className="text-slate-500 text-sm mt-0.5">Here's whats happening with your social accounts today.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -80,15 +80,15 @@ const Dashboard = () => {
                         <p className="text-slate-400 text-sm mt-1">Connected accounts and schedule posts to see events here.</p>
                     </div>
                 ): (
-                    <div className="dividey divide-slate-500">
+                    <div className="divide-y divide-slate-100">
                         {activities.map((activity) => (
                             <div key={activity._id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
-                                <div className="size-9 rounded-xl flex items-center justify-center shrink-0 mt-0 5 bg-zinc-100 text-zinc 600">
+                                <div className="size-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 bg-zinc-100 text-zinc-600">
                                     <SendIcon className="size-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2 mb-1">
-                                        <span className="text-xs px-2 py-0 5 rounded-full bg-zinc-100 text-zinc-600">Published</span>
+                                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">Published</span>
                                         <span className="text-xs text-slate-400 shrink-0">
                                             {new Date(activity.createdAt).toLocaleString()}
                                         </span>

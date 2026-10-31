@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
     },
     zernioProfileId: {
         type: String,
+    },
+    refreshToken: {
+        type: String,
     }
 }, {
     timestamps: true,

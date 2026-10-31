@@ -56,10 +56,13 @@ export const disconnectAccount = async (req: AuthRequest, res: Response): Promis
                     },
                 });
             } catch (error: any) {
-                res.status(500).json({
-                    message: error?.response?.data?.message || error?.message
-                });
-                return;
+                const status = error?.status || error?.response?.status;
+                if (status !== 404) {
+                    res.status(500).json({
+                        message: error?.response?.data?.message || error?.message
+                    });
+                    return;
+                }
             }
         }
 

@@ -14,10 +14,20 @@ export const initScheduler = () => {
 
             for (const post of postsToPublish) {
                 try {
+                    const claimedPost = await Post.findOneAndUpdate(
+                        { _id: post._id, status: "scheduled" },
+                        { status: "publishing" },
+                        { returnDocument: "after" }
+                    );
+
+                    if (!claimedPost) {
+                        continue;
+                    }
+
                     const accounts = await Account.find({
-                        user: post.user,
+                        user: claimedPost.user,
                         platform: {
-                            $in: post.platforms,
+                            $in: claimedPost.platforms,
                         },
                         status: "connected",
                         zernioAccountId: {
@@ -26,7 +36,9 @@ export const initScheduler = () => {
                     });
 
                     if (accounts.length === 0) {
-                        console.log(`No connected Zernio accounts found for post: ${post._id}`);
+                        console.log(`No connected Zernio accounts found for post: ${claimedPost._id}`);
+                        claimedPost.status = "failed";
+                        await claimedPost.save();
                         continue;
                     }
 
@@ -36,18 +48,18 @@ export const initScheduler = () => {
                     }));
 
                     const payload = {
-                        content: post.content,
+                        content: claimedPost.content,
                         publishNow: true,
-                        ...(post.mediaUrl ? {
+                        ...(claimedPost.mediaUrl ? {
                             mediaItems: [{
-                                type: post.mediaType || "image",
-                                url: post.mediaUrl
+                                type: claimedPost.mediaType || "image",
+                                url: claimedPost.mediaUrl
                             }]
                         } : {}),
                         platforms: zernioPlatforms,
                     };
 
-                    console.log(`Publishing post ${post._id} to Zernio with media: ${post.mediaUrl || "none"}`);
+                    console.log(`Publishing post ${claimedPost._id} to Zernio with media: ${claimedPost.mediaUrl || "none"}`);
 
                     const response = await zernio.posts.createPost({
                         body: payload
@@ -61,19 +73,18 @@ export const initScheduler = () => {
 
                     console.log(`Zernio post created: ${publishedPost._id || publishedPost.id}`);
 
-                    post.status = "published";
-                    await post.save();
+                    claimedPost.status = "published";
+                    await claimedPost.save();
 
                     await ActivityLog.create({
-                        user: post.user,
+                        user: claimedPost.user,
                         actionType: "POST_PUBLISHED",
                         description: `Published post to ${accounts.map((a) => a.platform).join(", ")}`,
-                        relatedPost: post._id,
+                        relatedPost: claimedPost._id,
                     });
                 } catch (err: any) {
                     console.error(`Failed to publish post ${post._id}: `, err?.response?.data || err?.message);
-                    post.status = "failed";
-                    await post.save();
+                    await Post.findByIdAndUpdate(post._id, { status: "failed" });
                 }
             }
 
