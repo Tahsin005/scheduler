@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from 'express';
 import cors from "cors";
+import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
 import socialAuthRouter from "./routes/socialAuthRoutes.js";
@@ -11,17 +12,35 @@ import { initScheduler } from "./services/schedulerService.js";
 
 const app = express();
 
+// trust reverse proxy for Render / Cloudflare
+app.set("trust proxy", 1);
+
 // database connection
 await connectDB();
 
-// iddleware
-app.use(cors())
+// middleware
+app.use(cors({
+    origin: true,
+    credentials: true,
+}));
 app.use(express.json());
 
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
     res.send('Server is Live!');
+});
+
+// health check endpoints for Render and frontend cold-start detection
+app.get(['/health', '/api/health'], (_req: Request, res: Response) => {
+    const isDbConnected = mongoose.connection.readyState === 1;
+    res.status(200).json({
+        status: 'ok',
+        message: 'Server is healthy and running',
+        uptime: Math.floor(process.uptime()),
+        database: isDbConnected ? 'connected' : 'connecting',
+        timestamp: new Date().toISOString(),
+    });
 });
 
 // routes
@@ -42,8 +61,8 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const message = err.message || "Internal Server Error";
 
     res.status(statusCode).json({ message });
-})
+});
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
